@@ -15,36 +15,46 @@ Commands:
 - `gigtrack jobs` — per-job tallies with average hourly rate, plus all-time
   totals.
 - `gigtrack export --out FILE` — export all shifts to CSV.
-- `gigtrack delete --id ID` — delete a shift by id.
+- `gigtrack delete --id ID` — delete a shift by full ID or unambiguous prefix.
 
 Storage: local JSON file (default `~/.gigtrack/shifts.json`), overridable with
-`--storage`. No accounts, no API keys, no cloud, no network. Local-first.
+`--storage` or the `GIGTRACK_STORAGE` environment variable. No accounts, no API
+keys, no cloud, no network. Local-first.
 
 Files:
-- `gigtrack/models.py` — Shift dataclass (id, date, job, shift_type, hours,
-  rate, earnings, expenses, notes) with `net()` and dict serialization.
-- `gigtrack/storage.py` — JSON read/write/add/delete.
+- `gigtrack/__init__.py` — package marker and version.
+- `gigtrack/__main__.py` — enables `python3 -m gigtrack`.
+- `gigtrack/cli.py` — argparse CLI with add/list/summary/jobs/export/delete.
+- `gigtrack/models.py` — Shift dataclass with `net()` and dict serialization.
 - `gigtrack/reports.py` — weekly_summary (ISO week), job_tallies, totals.
-- `gigtrack/cli.py` — argparse CLI.
+- `gigtrack/storage.py` — JSON read/write/add/delete with prefix delete.
 - `tests/test_math.py` — earnings, net, totals, weekly, job-tally tests.
 - `tests/test_dates.py` — date parsing and ISO week boundary tests.
+- `tests/test_storage.py` — delete (exact, prefix, ambiguous, nonexistent) and
+  env-var storage path tests.
 - `pyproject.toml` — installable package with `gigtrack` console script.
-- `README.md`, `LICENSE` (MIT), `.gitignore`.
+- `README.md`, `LICENSE` (MIT), `.gitignore`, `STATUS.md`.
 
 ## How to run it
 
 ```bash
 # From the project folder (no install needed):
-python3 -m gigtrack.cli add --date 2026-10-30 --job "Hospital A" \
+python3 -m gigtrack add --date 2026-10-30 --job "Hospital A" \
   --type on-call --hours 12 --rate 45 --expenses 15.50
-python3 -m gigtrack.cli list
-python3 -m gigtrack.cli summary
-python3 -m gigtrack.cli jobs
-python3 -m gigtrack.cli export --out shifts.csv
+python3 -m gigtrack list
+python3 -m gigtrack summary
+python3 -m gigtrack jobs
+python3 -m gigtrack export --out shifts.csv
 
 # Or install:
 pip install -e .
 gigtrack add --date 2026-10-30 --job "Hospital A" --type on-call --hours 12 --rate 45
+
+# Use a different storage file:
+gigtrack --storage /path/to/my-shifts.json list
+# or:
+export GIGTRACK_STORAGE="/path/to/my-shifts.json"
+gigtrack list
 ```
 
 Tests:
@@ -54,22 +64,22 @@ python3 -m unittest discover -s tests -v
 
 ## Verification results
 
-- `python3 -m unittest discover -s tests -v`: 15 tests, OK (7 math, 8 date).
+- `python3 -m unittest discover -s tests -v`: 20 tests, OK (7 math, 8 date,
+  5 storage).
 - End-to-end smoke test passed: add two shifts, list, summary, jobs, export to
-  CSV, delete — all produced correct output (verified earnings math, net
-  earnings, ISO-week grouping, CSV contents).
+  CSV, delete by prefix — all produced correct output (verified earnings math,
+  net earnings, ISO-week grouping, CSV contents, prefix delete).
+- `python3 -m gigtrack` (via `__main__.py`) works correctly.
+- `GIGTRACK_STORAGE` environment variable override works.
 - Python 3.13.5 used for verification. Code targets Python 3.8+ (stdlib only,
   no external dependencies).
+- `python3 -m py_compile` passes on all modules.
 
 ## Known gaps
 
-- No `__main__.py`, so `python3 -m gigtrack` does not work; use
-  `python3 -m gigtrack.cli` or the installed `gigtrack` console script.
-- Delete matches on exact id only (CLI help suggests first 8 chars but storage
-  delete requires full id; prefix matching was not implemented).
 - No per-shift edit/update command.
-- Storage file path defaults to `~/.gigtrack/shifts.json`; no env-var override
-  beyond `--storage`.
+- Default storage file path is `~/.gigtrack/shifts.json` (overridable via
+  `--storage` or `GIGTRACK_STORAGE`).
 - No git identity configuration in repo; commits use the existing local git
   identity.
 - No `.github/workflows` files (intentionally omitted per requirements).

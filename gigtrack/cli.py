@@ -11,7 +11,7 @@ from typing import Optional, Sequence
 
 from .models import Shift
 from .reports import job_tallies, totals, weekly_summary
-from .storage import DEFAULT_STORAGE_PATH, Storage
+from .storage import ENV_STORAGE_PATH, Storage, default_storage_path
 
 
 def _parse_date(value: str) -> str:
@@ -176,8 +176,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--storage",
-        default=DEFAULT_STORAGE_PATH,
-        help=f"Path to the local JSON storage file (default: {DEFAULT_STORAGE_PATH})",
+        default=None,
+        help=f"Path to the local JSON storage file (default: {default_storage_path()}, "
+        f"or the {ENV_STORAGE_PATH} environment variable)",
     )
 
     sub = parser.add_subparsers(dest="command", required=True)
