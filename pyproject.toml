@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gigtrack"
+version = "0.1.0"
+description = "Local-first CLI to log gig and on-call work hours, earnings, expenses, and shift types."
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "Asdale Dynamics, LLC"}]
+
+[project.scripts]
+gigtrack = "gigtrack.cli:main"
+
+[tool.setuptools]
+packages = ["gigtrack"]
